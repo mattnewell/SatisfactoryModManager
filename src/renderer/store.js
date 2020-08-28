@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+import * as Promise from 'bluebird';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
@@ -7,6 +8,7 @@ import {
   createProfile,
   deleteProfile,
   getMod,
+  getInstallSteamLinux,
 } from 'satisfactory-mod-manager-api';
 import {
   satisfies, coerce, valid, minVersion,
@@ -15,6 +17,7 @@ import { ipcRenderer } from 'electron';
 import { bytesToAppropriate, secondsToAppropriate, setIntervalImmediately } from './utils';
 import { saveSetting, getSetting } from '~/settings';
 
+Promise.longStackTraces();
 Vue.use(Vuex);
 
 const MAX_DOWNLOAD_NAME_LENGTH = 20;
@@ -332,7 +335,7 @@ export default new Vuex.Store({
     async initApp({
       commit, dispatch, state, getters,
     }) {
-      await sleep(10000);
+      await sleep(20000);
       const appLoadProgress = {
         id: '__loadingApp__',
         progresses: [{
@@ -373,7 +376,13 @@ export default new Vuex.Store({
         await Promise.all([
           (async () => {
             await loadCache();
-            const { installs, invalidInstalls } = await getInstalls();
+            let result;
+            if (process.platform === 'win32') {
+              result = await getInstalls();
+            } else {
+              result = await getInstallSteamLinux('/home/steam-data');
+            }
+            const { installs, invalidInstalls } = result;
             if (installs.length === 0) {
               if (invalidInstalls.length !== 0) {
                 const invalidInstallsString = invalidInstalls.map((invalidInstall) => `"${invalidInstall}"`).join('\n');
