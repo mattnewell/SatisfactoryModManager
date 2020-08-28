@@ -26,6 +26,12 @@ function limitDownloadNameLength(name) {
   return name;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export default new Vuex.Store({
   state: {
     filters: {
@@ -326,6 +332,7 @@ export default new Vuex.Store({
     async initApp({
       commit, dispatch, state, getters,
     }) {
+      await sleep(10000);
       const appLoadProgress = {
         id: '__loadingApp__',
         progresses: [{
