@@ -44,4 +44,7 @@ export default new Vuex.Store({
     isLaunchingGame: false,
     expandModInfoOnStart: false,
   },
+  actions: {
+
+  },
 });
