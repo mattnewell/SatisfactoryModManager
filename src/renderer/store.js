@@ -1,5 +1,7 @@
+/* eslint-disable no-param-reassign */
 import Vue from 'vue';
 import Vuex from 'vuex';
+import { getAvailableMods } from 'satisfactory-mod-manager-api';
 
 Vue.use(Vuex);
 
@@ -44,7 +46,34 @@ export default new Vuex.Store({
     isLaunchingGame: false,
     expandModInfoOnStart: false,
   },
+  mutations: {
+    setAvailableMods(state, { mods }) {
+      state.mods = mods;
+    },
+  },
   actions: {
-
+    async initApp({ commit }) {
+      const page = await getAvailableMods(0);
+      // const mods = page.flat(1);
+      const mods = page;
+      commit('setAvailableMods', {
+        mods: mods.map((mod) => ({
+          modInfo: mod,
+          isInstalled: false,
+          isCompatible: true,
+          isDependency: false,
+          manifestVersion: null,
+          installedVersion: null,
+        })),
+      });
+    },
+  },
+  getters: {
+    allMods(state) {
+      return [...state.mods, ...state.hiddenInstalledMods];
+    },
+    filteredMods(state) {
+      return state.mods;
+    },
   },
 });
