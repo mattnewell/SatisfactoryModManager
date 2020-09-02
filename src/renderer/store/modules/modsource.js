@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { getAvailableMods } from 'satisfactory-mod-manager-api';
+import { getAvailableMods, getModsCount, MODS_PER_PAGE } from 'satisfactory-mod-manager-api';
 
 const modState = () => ({
   mods: [],
@@ -9,21 +9,29 @@ const getters = {
   filteredMods: (state) => state.mods,
 };
 
+async function loadAvailableMods(commit) {
+  const modCount = await getModsCount();
+  const modPages = Math.ceil(modCount / MODS_PER_PAGE);
+  const results = [];
+  for (let i = 0; i <= modPages; i += 1) {
+    results.push(getAvailableMods(i));
+  }
+  const mods = (await Promise.all(results)).flat();
+  commit('setAvailableMods', {
+    mods: mods.map((mod) => ({
+      modInfo: mod,
+      isInstalled: false,
+      isCompatible: true,
+      isDependency: false,
+      manifestVersion: null,
+      installedVersion: null,
+    })),
+  });
+}
+
 const actions = {
   async init({ commit }) {
-    const page = await getAvailableMods(0);
-    // const mods = page.flat(1);
-    const mods = page;
-    commit('setAvailableMods', {
-      mods: mods.map((mod) => ({
-        modInfo: mod,
-        isInstalled: false,
-        isCompatible: true,
-        isDependency: false,
-        manifestVersion: null,
-        installedVersion: null,
-      })),
-    });
+    await loadAvailableMods(commit);
   },
 };
 
